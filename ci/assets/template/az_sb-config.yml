@@ -1,0 +1,168 @@
+product-name: azure-service-broker
+product-properties:
+  .properties.allow_paid_service_plans:
+    value: true
+  .properties.allow_to_generate_names_and_passwords_for_the_missing:
+    value: true
+  .properties.apply_open_security_group:
+    value: true
+  .properties.azure_broker_database_encryption_key:
+    value:
+      secret: {{.database_encryption_key}}
+  .properties.azure_broker_database_name:
+    value: {{.database_name}}
+  .properties.azure_broker_database_password:
+    value:
+      secret: {{.database_password}}
+  .properties.azure_broker_database_provider:
+    value: sqlserver
+  .properties.azure_broker_database_server:
+    value: {{.database_server}}
+  .properties.azure_broker_database_user:
+    value: {{.database_user}}
+  .properties.azure_service_broker_enable_global_access_to_plans:
+    value: true
+  .properties.azure_sqldb_allow_to_create_sql_server:
+    value: true
+  .properties.azure_sqldb_enable_transparent_data_encryption:
+    value: false
+  .properties.client_id:
+    value: {{.client_id}}
+  .properties.client_secret:
+    value:
+      secret: {{.client_secret}}
+  .properties.default_location:
+    value: eastus
+  .properties.default_parameters_azure_cosmosdb:
+    value: |
+      {
+        "kind": "DocumentDB"
+      }
+  .properties.default_parameters_azure_docdb:
+    value: |
+      {
+      }
+  .properties.default_parameters_azure_eventhubs:
+    value: |
+      {
+        "eventHubProperties": {
+            "messageRetentionInDays": 1,
+            "partitionCount": 2
+        }
+      }
+  .properties.default_parameters_azure_mysqldb:
+    value: |
+      {
+        "mysqlServerParameters": {
+            "allowMysqlServerFirewallRules": [
+                {
+                  "ruleName": "all",
+                  "startIpAddress": "0.0.0.0",
+                  "endIpAddress": "255.255.255.255"
+                }
+            ],
+            "properties": {
+                "version": "5.6",
+                "sslEnforcement": "Disabled",
+                "storageMB": 51200
+            }
+        }
+      }
+  .properties.default_parameters_azure_postgresqldb:
+    value: |
+      {
+        "postgresqlServerParameters": {
+            "allowPostgresqlServerFirewallRules": [
+                {
+                  "ruleName": "all",
+                  "startIpAddress": "0.0.0.0",
+                  "endIpAddress": "255.255.255.255"
+                }
+            ],
+            "properties": {
+                "version": "9.6",
+                "sslEnforcement": "Disabled",
+                "storageMB": 51200
+            }
+        }
+      }
+  .properties.default_parameters_azure_rediscache:
+    value: |
+      {
+        "parameters": {
+            "enableNonSslPort": false
+        }
+      }
+  .properties.default_parameters_azure_servicebus:
+    value: |
+      {
+      }
+  .properties.default_parameters_azure_sqldb:
+    value: |
+      {
+        "sqlServerParameters": {
+            "allowSqlServerFirewallRules": [
+                {
+                    "ruleName": "all",
+                    "startIpAddress": "0.0.0.0",
+                    "endIpAddress": "255.255.255.255"
+                }
+            ]
+        },
+        "transparentDataEncryption": true,
+        "sqldbParameters": {
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS"
+            }
+        }
+      }
+  .properties.default_parameters_azure_sqldb_failover_group:
+    value: |
+      {
+        "readWriteEndpoint": {
+            "failoverPolicy": "Automatic",
+            "failoverWithDataLossGracePeriodMinutes": 60
+        },
+        "userRoles": ["db_owner"]
+      }
+  .properties.default_parameters_azure_storage:
+    value: |
+      {
+        "accountType": "Standard_LRS"
+      }
+  .properties.default_resource_group:
+    value: azure-service-broker
+  .properties.environment:
+    value: AzureCloud
+  .properties.org:
+    value: system
+  .properties.space:
+    value: azure-service-broker-space
+  .properties.subscription_id:
+    value: {{.subscription_id}}
+  .properties.tenant_id:
+    value: {{.tenant_id}}
+network-properties:
+  network:
+    name: {{.services_subnet_name}}
+  other_availability_zones:
+  - name: Availability Sets
+  singleton_availability_zone:
+    name: Availability Sets
+resource-config:
+  delete-all:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  deploy-all:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+errand-config:
+  delete-all:
+    pre-delete-state: true
+  deploy-all:
+    post-deploy-state: true
+

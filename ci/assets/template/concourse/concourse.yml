@@ -1,0 +1,162 @@
+---
+name: concourse
+
+releases:
+- name: concourse
+  version: latest
+- name: postgres
+  version: latest
+- name: bpm
+  version: latest
+- name: routing
+  version: latest
+
+instance_groups:
+- name: concourse
+  instances: 1
+  azs:
+    - Availability Sets
+  networks: [{name: ((/pcf-services))}]
+  stemcell: xenial
+  vm_type: Standard_F1s
+  jobs:
+  - name: bpm
+    release: bpm
+  - consumes:
+      nats:
+        deployment: ((cf_deployment_name))
+        from: nats
+    name: route_registrar
+    properties:
+      route_registrar:
+        routes:
+        - name: concourse
+          port: 8080
+          registration_interval: 20s
+          uris:
+          - concourse.sys.REPLACE_ME_DNS
+    release: routing
+  - name: web
+    release: concourse
+    properties:
+      log_level: debug
+      add_local_users:
+      - concourse:REPLACE_ME
+      auth_duration: 24h
+      bind_port: 8080
+      build_log_retention:
+        default: 0
+      credhub:
+        client_id: concourse_to_credhub
+        client_secret: ((/concourse/concourse_to_credhub_secret))
+        tls:
+          ca_certs:
+          - |
+            ((/certs/wildcard.ca))
+            ((/certs/wildcard.certificate))
+          insecure_skip_verify: true
+        url: https://10.35.126.227:8844
+      external_url: https://concourse.sys.REPLACE_ME_DNS
+      ldap_auth:
+        host: ((/ldap_host)):389
+        insecure_no_ssl: true
+        start_tls: false
+        user_search_base_dn: ((/ldap_user_search_base_dn))
+        user_search_username: userPrincipalName
+        bind_dn: ((/ldap_user.username))
+        bind_pw: ((/ldap_user.password))
+        user_search_scope: sub
+        user_search_id_attr: userPrincipalName
+        user_search_email_attr: mail
+        user_search_name_attr: name
+        group_search_base_dn: ((/ldap_group_search_base_dn))
+        group_search_scope: sub
+        group_search_group_attr: member
+        group_search_name_attr: cn
+        group_search_user_attr: distinguishedName
+      main_team:
+        auth:
+          allow_all_users: false
+          ldap:
+            groups:
+            - "PAE_PCF"
+          local:
+            users:
+            - concourse
+      prometheus:
+        bind_ip: 0.0.0.0
+        bind_port: 9391
+      postgresql:
+        database: atc
+        role:
+          name: concourse
+          password: ((postgres_password))
+        sslmode: disable
+      token_signing_key: ((token_signing_key))
+      worker_gateway:
+        host_key: ((tsa_host_key))
+        authorized_keys: [((worker_key.public_key))]
+        log_level: debug
+
+- name: db
+  release: postgres
+  instances: 1
+  azs:
+    - Availability Sets
+  networks: [{name: ((/pcf-services))}]
+  stemcell: xenial
+  vm_type: Standard_F1s
+  persistent_disk_type: 102400
+  jobs:
+  - name: postgres
+    properties:
+      databases:
+        databases:
+        - name: atc
+        port: 5432
+        roles:
+        - name: concourse
+          password: ((postgres_password))
+
+- name: worker
+  release: concourse
+  instances: 3
+  azs:
+    - Availability Sets
+  networks: [{name: ((/pcf-services))}]
+  stemcell: xenial
+  vm_type: Standard_F4s
+  jobs:
+  - name: worker
+    properties:
+      drain_timeout: 10m
+      connection_drain_timeout: 10m
+      log_level: debug
+      worker_gateway:
+        worker_key: ((worker_key))
+
+variables:
+- name: postgres_password
+  type: password
+- name: token_signing_key
+  type: rsa
+- name: tsa_host_key
+  type: ssh
+- name: worker_key
+  type: ssh
+- name: concourse_user
+  options:
+    username: concourse
+  type: user
+
+stemcells:
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 3
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000

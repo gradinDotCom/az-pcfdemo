@@ -1,0 +1,81 @@
+product-name: p-healthwatch
+product-properties:
+  .healthwatch-forwarder.boshhealth_instance_count:
+    value: 1
+  .healthwatch-forwarder.boshtasks_instance_count:
+    value: 2
+  .healthwatch-forwarder.canary_instance_count:
+    value: 2
+  .healthwatch-forwarder.cli_instance_count:
+    value: 2
+  .healthwatch-forwarder.foundation_name:
+    value: {{.foundation_name}}
+  .healthwatch-forwarder.health_check_az:
+    value: Availability Sets
+  .healthwatch-forwarder.ingestor_instance_count:
+    value: 3
+  .healthwatch-forwarder.opsman_instance_count:
+    value: 2
+  .healthwatch-forwarder.publish_to_eva:
+    value: true
+  .healthwatch-forwarder.worker_instance_count:
+    value: 1
+  .mysql.skip_name_resolve:
+    value: true
+  .properties.boshtasks:
+    selected_option: enable
+    value: enable
+  .properties.boshtasks.enable.bosh_taskcheck_password:
+    value:
+      secret: {{.healthwatch_uaa_password}}
+  .properties.boshtasks.enable.bosh_taskcheck_username:
+    value: {{.healthwatch_uaa_user}}
+  .properties.indicators_selector:
+    selected_option: inactive
+    value: "No"
+  .properties.opsman:
+    selected_option: enable
+    value: enable
+  .properties.opsman.enable.url:
+    value: {{.opsman_url}}
+  .properties.syslog_selector:
+    selected_option: inactive
+    value: "No"
+network-properties:
+  network:
+    name: services
+  other_availability_zones:
+  - name: Availability Sets
+  service_network:
+    name: services
+  singleton_availability_zone:
+    name: Availability Sets
+resource-config:
+  healthwatch-forwarder:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  mysql:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  redis:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+errand-config:
+  delete-space:
+    pre-delete-state: true
+  push-apps:
+    post-deploy-state: true
+  smoke-tests:
+    post-deploy-state: true

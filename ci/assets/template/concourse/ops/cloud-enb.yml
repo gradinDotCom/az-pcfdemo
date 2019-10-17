@@ -1,0 +1,51 @@
+- type: replace
+  path: /instance_groups/-
+  value:
+    azs: ((azs))
+    instances: 1
+    jobs:
+    - consumes:
+        baggageclaim:
+          from: worker-baggageclaim-cloudenb
+      name: worker
+      properties:
+        drain_timeout: 5m
+        http_proxy_url: ((http_proxy_url))
+        https_proxy_url: ((http_proxy_url))
+        no_proxy: ((no_proxy))
+        team: cloud-enablement
+        tsa: {worker_key: ((worker_key))}
+      release: concourse
+    - name: baggageclaim
+      properties:
+        log_level: debug
+      provides:
+        baggageclaim:
+          as: worker-baggageclaim-cloudenb
+      release: concourse
+    - name: garden
+      properties:
+        garden:
+          listen_address: 0.0.0.0:7777
+          listen_network: tcp
+      release: garden-runc
+    name: worker-cloudenb
+    networks:
+    - name: ((pcf-boshdeploy))
+    persistent_disk_type: 10240
+    stemcell: xenial
+    vm_type: small.disk
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/add_local_users/-
+  value:
+    ((/p-bosh/credhub/cloud_enablement.username)):((/p-bosh/credhub/cloud_enablement.password))
+
+# Variables
+# - type: replace
+#   path: /variables/-
+#   value:
+#     name: cloud_enablement
+#     options:
+#       username: cloudenb
+#     type: user

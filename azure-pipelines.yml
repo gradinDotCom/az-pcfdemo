@@ -1,0 +1,17 @@
+resources:
+  containers:
+    - container: ubuntu1604
+      image: ubuntu:16.04
+    - container: terraform
+      image: hashicorp/terraform
+
+pool:
+  vmImage: 'ubuntu-16.04'
+
+container: ubuntu1604
+
+services:
+  terraform: terraform
+
+steps:
+- script: terraform validate

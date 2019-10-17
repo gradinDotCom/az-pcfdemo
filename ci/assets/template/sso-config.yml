@@ -1,0 +1,22 @@
+product-name: Pivotal_Single_Sign-On_Service
+network-properties:
+  network:
+    name: services
+  other_availability_zones:
+  - name: Availability Sets
+  singleton_availability_zone:
+    name: Availability Sets
+resource-config:
+  deploy-service-broker:
+    instances: automatic
+    instance_type:
+      id: automatic
+  destroy-broker:
+    instances: automatic
+    instance_type:
+      id: automatic
+errand-config:
+  deploy-service-broker:
+    post-deploy-state: true
+  destroy-broker:
+    pre-delete-state: true

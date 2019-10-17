@@ -1,0 +1,460 @@
+---
+name: credhub
+
+releases:
+- name: cf-mysql
+  version: latest #36.16.0
+- name: routing
+  version: latest
+- name: "uaa"
+  version: "73.7.0"
+  url: "https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=73.7.0"
+  sha1: "86d544dc3e1eaa46d5a44530c609723888a51ffa"
+- name: backup-and-restore-sdk
+  version: latest
+- name: os-conf
+  version: latest
+- name: credhub
+  version: latest
+- name: bpm
+  version: 1.0.0
+- name: credhub-webui
+  version: 0.0.5
+  sha1: 0e05c6c7bd0d50bfa214142b16f3c8e333ec68e2
+  url: https://github.com/shreddedbacon/credhub-webui-boshrelease/releases/download/v0.0.5/credhub-webui-boshrelease-0.0.5.tgz  
+stemcells:
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+update:
+  canaries: 1
+  canary_watch_time: 10000-300000
+  max_in_flight: 1
+  serial: true
+  update_watch_time: 10000-300000
+instance_groups:
+- name: db
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  stemcell: xenial
+  vm_type: Standard_F1s
+  persistent_disk: 10240
+  instances: 3
+  jobs:
+  - name: mysql
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        port: 3306
+        mysql:
+          admin_password: ((db_admin_password))
+          admin_username: admin
+          cluster_health:
+            password: ((cluster_health_password))
+          galera_healthcheck:
+            db_password: ((galera_healthcheck_db_password))
+            endpoint_password: ((galera_healthcheck_endpoint_password))
+          seeded_databases:
+            - name: credhub
+              username: credhub
+              password: ((credhub_db_password))
+            - name: uaa
+              username: uaa
+              password: ((credhub_uaa_db_password))
+          tls:
+            ca_certificate: ((credhub-database-tls.ca))
+            server_certificate: ((credhub-database-tls.certificate))
+            server_key: ((credhub-database-tls.private_key))
+  - name: smoke-tests-user
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        smoke_tests:
+          db_password: ((mysql_smoke_tests_db_password))
+- name: arbitrator
+  instances: 1
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - release: cf-mysql
+    name: arbitrator
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: ((db_admin_password))
+          galera_healthcheck:
+            endpoint_password: ((galera_healthcheck_endpoint_password))
+- name: proxy
+  instances: 1 #this needs to be 1 due to proxy limitations being a load balancer
+  azs:
+    - Availability Sets
+  networks:
+  - name: services
+    static_ips: [((credhub_mySQL_proxy_ip))]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - name: proxy
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        mysql:
+          port: 3306
+        proxy:
+          api_aggregator_port: 8081
+          api_port: 8080
+          # api_uri: ((credhub_mySQL_proxy_ip))
+          api_username: proxy
+          api_password: ((mysql_proxy_api_password))
+          port: 3306
+    provides:
+      mysql-database:
+        as: mysql-database
+        shared: true
+- name: bootstrap-vm
+  instances: 1
+  lifecycle: errand
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - {release: cf-mysql, name: bootstrap}
+- name: rejoin-unsafe-vm
+  instances: 1
+  lifecycle: errand
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - {release: cf-mysql, name: rejoin-unsafe}
+- name: verify-cluster-schemas-vm
+  instances: 1
+  lifecycle: errand
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - name: verify-cluster-schemas
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: ((db_admin_password))
+          galera_healthcheck:
+            endpoint_password: ((galera_healthcheck_endpoint_password))
+- name: smoke-tests-vm
+  instances: 1
+  lifecycle: errand
+  azs:
+    - Availability Sets
+  networks: [{name: services}]
+  vm_type: Standard_F1s
+  stemcell: xenial
+  jobs:
+  - name: smoke-tests
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: ((db_admin_password))
+        proxy:
+          api_password: ((mysql_proxy_api_password))
+        smoke_tests:
+          db_password: ((mysql_smoke_tests_db_password))
+          standalone_tests_only: true
+- name: credhub
+  azs:
+    - Availability Sets
+  networks:
+  - name: services
+    static_ips: [((credhub_static_ips))]
+  stemcell: xenial
+  persistent_disk: 5120
+  vm_type: Standard_F1s
+  instances: 1
+  jobs:
+  - name: bpm
+    release: bpm
+  - name: route_registrar
+    release: routing
+    consumes:
+      nats:
+        deployment: ((cf_deployment_name))
+        from: nats
+    properties:
+      route_registrar:
+          routes:
+          - name: uaa
+            port: 8443
+            registration_interval: 20s
+            uris: 
+            - credhub-uaa.sys.REPLACE_ME_DNS
+  - name: uaa
+    release: uaa
+    properties:
+      bpm:
+        enabled: false
+      encryption:
+        active_key_label: uaa-encryption-key-1
+        encryption_keys:
+        - label: uaa-encryption-key-1
+          passphrase: ((uaa_encryption_password))
+      login:
+        prompt:
+          password:
+            text: Enter cloud password
+          username:
+            text: Enter cloud Username
+        saml:
+          serviceProviderCertificate: ((/certs/wildcard.certificate))
+          serviceProviderKey: ((/certs/wildcard.private_key))
+          serviceProviderKeyPassword: ""
+      uaa:
+        admin:
+          client_secret: ((credhub_uaa_admin_password))
+        ca_cert: ((/certs/wildcard.ca))
+        catalina_opts: -Djava.security.egd=file:/dev/./urandom -Xmx768m -XX:MaxMetaspaceSize=256m
+        clients:
+          concourse_to_credhub:
+            access-token-validity: 1200
+            authorities: credhub.read,credhub.write
+            authorized-grant-types: client_credentials
+            override: true
+            refresh-token-validity: 3600
+            scope: ""
+            secret: ((/concourse/concourse_to_credhub_secret))
+          credhub_admin_client:
+            access-token-validity: 3600
+            authorities: credhub.read,credhub.write
+            authorized-grant-types: client_credentials
+            override: true
+            scope: uaa.none
+            secret: ((credhub-admin-client-password))
+          credhub_cli:
+            access-token-validity: 120
+            authorities: uaa.resource
+            authorized-grant-types: password,refresh_token
+            override: true
+            refresh-token-validity: 1800
+            scope: credhub.read,credhub.write
+            secret: ""
+          uaa_admin:
+            authorities: clients.read,clients.write,clients.secret,uaa.admin,scim.read,scim.write,password.write
+            authorized-grant-types: client_credentials
+            override: true
+            scope: ""
+            secret: ((credhub_uaa_admin_password))
+          credhub-admin:
+            access-token-validity: 3600
+            authorities: credhub.read,credhub.write
+            authorized-grant-types: client_credentials
+            override: true
+            scope: ""
+            secret: ((credhub_admin_password))
+          credhub_ui_admin:
+            access-token-validity: 3600
+            authorities: credhub.read,credhub.write
+            authorized-grant-types: client_credentials
+            override: true
+            scope: uaa.none
+            secret: P@55w0Rd
+        jwt:
+          policy:
+            active_key_id: uaa-encryption-key-1
+            keys:
+              uaa-encryption-key-1:
+                signingKey: ((uaa-jwt.private_key))
+          revocable: true
+        ldap:
+          emailDomain: []
+          enabled: true
+          groups:
+            autoAdd: true
+            groupRoleAttribute: spring.security.ldap.dn
+            groupSearchFilter: member={0}
+            maxSearchDepth: 10
+            profile_type: groups-map-to-scopes
+            searchBase: REPLACE_ME
+            searchSubtree: true
+          mailAttributeName: mail
+          profile_type: search-and-bind
+          referral: follow
+          searchBase: REPLACE_ME
+          searchFilter: userPrincipalName={0}
+          ssl:
+            skipverification: true
+          url: ldap://REPLACE_ME
+          userDN: ((/ldap_user.username))
+          userPassword: ((/ldap_user.password))
+        log_level: debug
+        login:
+          client_secret: ((uaa-login))
+        port: 8443
+        scim:
+          external_groups:
+            ldap:
+              REPLACE_ME:
+              - credhub.write
+              - credhub.read
+              - scim.write
+              - scim.read
+              - clients.read
+              - clients.write
+              - uaa.admin
+          users:
+          - groups:
+            - scim.write
+            - scim.read
+            - credhub.read
+            - credhub.write
+            - uaa.admin
+            - clients.read
+            - clients.write
+            name: admin
+            password: ((uaa-users-admin))
+        sslCertificate: ((/certs/wildcard.certificate))
+        sslPrivateKey: ((/certs/wildcard.private_key))
+        url: https://credhub-uaa.sys.REPLACE_ME_DNS:8443
+        zones:
+          internal:
+            hostnames: []
+      uaadb:
+        address: ((credhub_mySQL_proxy_ip))
+        databases:
+        - name: uaa
+          tag: uaa
+        db_scheme: mysql
+        port: 3306
+        roles:
+        - name: uaa
+          password: ((credhub_uaa_db_password))
+          tag: admin
+        tls: disabled
+
+  - name: credhub
+    release: credhub
+    provides:
+      credhub:
+        shared: true
+    properties:
+      credhub:
+        tls: ((/certs/wildcard))
+        port: 8844
+        authentication:
+          uaa:
+            url: https://credhub-uaa.sys.REPLACE_ME_DNS:8443
+            verification_key: ((uaa-jwt.public_key))
+            ca_certs:
+            - ((/certs/wildcard.certificate))
+        authorization:
+          acls:
+            enabled: false
+          permissions:
+          - actors:
+            - uaa-client:credhub_admin_client
+            - uaa-client:concourse_to_credhub
+            operations:
+            - read
+            - write
+            - delete
+            - read_acl
+            - write_acl
+            path: "/*"
+        ca_certificate: ((/certs/wildcard.ca))
+        data_storage:
+          type: mysql
+          username: credhub
+          password: ((credhub_db_password))
+          database: credhub
+          host: ((credhub_mySQL_proxy_ip))
+          port: 3306
+          require_tls: true
+          tls_ca: ((credhub-database-tls.ca))
+        log_level: debug
+        encryption:
+          keys: 
+          - provider_name: int
+            key_properties:
+              encryption_password: ((credhub-encryption-password))
+            active: true
+          providers: 
+          - name: int
+            type: internal
+
+variables:
+#Certs
+- name: MySQL-ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: 'MySQL CA'
+
+- name: credhub-database-tls
+  type: certificate
+  options:
+    ca: MySQL-ca
+    common_name: ((credhub_mySQL_proxy_ip))
+    alternative_names:
+    - ((credhub_mySQL_proxy_ip))
+    - localhost
+    - 127.0.0.1
+
+- name: uaa-jwt
+  type: rsa
+  options:
+    key_length: 4096
+
+
+#UAA
+- name: uaa-users-admin
+  type: password
+- name: credhub_uaa_admin_password
+  type: password
+- name: uaa-login
+  type: password
+- name: uaa_encryption_password
+  type: password
+
+#CredHub
+- name: credhub-encryption-password
+  type: password
+  options:
+    length: 40
+- name: credhub-admin-client-password
+  type: password
+- name: credhub_admin_password
+  type: password
+
+#MySQL Vars
+- name: mysql_smoke_tests_db_password
+  type: password
+- name: mysql_proxy_api_password
+  type: password
+- name: galera_healthcheck_endpoint_password
+  type: password
+- name: galera_healthcheck_db_password
+  type: password
+- name: cluster_health_password
+  type: password
+- name: db_admin_password
+  type: password
+
+#DB Passwords
+- name: credhub_db_password
+  type: password
+- name: credhub_uaa_db_password
+  type: password
+
+#Clinet Passwords
+- name: /concourse/concourse_to_credhub_secret
+  type: password

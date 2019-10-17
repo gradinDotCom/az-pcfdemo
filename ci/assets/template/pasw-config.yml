@@ -1,0 +1,39 @@
+product-name: pas-windows
+product-properties:
+  .properties.bosh_ssh_enabled:
+    value: true
+  .properties.kms:
+    selected_option: disable
+    value: disable
+  .properties.smoke_tests_windows:
+    selected_option: on_demand
+    value: on_demand
+  .properties.rdp_enabled:
+    value: true
+  .properties.system_logging:
+    selected_option: disable
+    value: disable
+  .properties.windows_admin_password:
+    value: set_password
+  .properties.windows_admin_password.set_password.password:
+    value:
+      secret: {{.password}}
+network-properties:
+  network:
+    name: {{.pas_subnet_name}}
+  other_availability_zones:
+  - name: Availability Sets
+  singleton_availability_zone:
+    name: Availability Sets
+resource-config:
+  windows_diego_cell:
+    instances: {{.numberOfWinCells}}
+    instance_type:
+      id: automatic
+    internet_connected: false
+
+errand-config:
+  install-hwc-buildpack:
+    post-deploy-state: true
+  smoke_tests_windows:
+    post-deploy-state: false

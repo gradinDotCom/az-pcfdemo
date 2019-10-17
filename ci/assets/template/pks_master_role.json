@@ -1,0 +1,24 @@
+{
+    "Name":  "PKS master",
+    "IsCustom":  true,
+    "Description":  "Permissions for PKS master",
+    "Actions":  [
+        "Microsoft.Network/*",
+        "Microsoft.Compute/disks/*",
+        "Microsoft.Compute/virtualMachines/write",
+        "Microsoft.Compute/virtualMachines/read",
+        "Microsoft.Storage/storageAccounts/*"
+    ],
+    "NotActions":  [
+
+    ],
+    "DataActions":  [
+
+    ],
+    "NotDataActions":  [
+
+    ],
+    "AssignableScopes":  [
+      "/subscriptions/REPLACE_ME/resourceGroups/REPLACE_ME"
+    ]
+}

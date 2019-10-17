@@ -1,0 +1,20 @@
+{
+    "Name":  "PKS worker",
+    "IsCustom":  true,
+    "Description":  "Permissions for PKS worker",
+    "Actions":  [
+        "Microsoft.Storage/storageAccounts/*"
+    ],
+    "NotActions":  [
+
+    ],
+    "DataActions":  [
+
+    ],
+    "NotDataActions":  [
+
+    ],
+    "AssignableScopes":  [
+      "/subscriptions/REPLACE_ME/resourceGroups/REPLACE_ME"
+    ]
+}

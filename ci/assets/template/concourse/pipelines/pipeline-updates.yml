@@ -1,0 +1,228 @@
+resources:
+- name: next
+  type: time
+  source:
+    interval: 60s
+
+- name: pipeline_repo
+  type: git
+  source:
+    # uri: ((automation_git))
+    # username: ((git_automation.username))
+    # password: ((git_automation.password))
+    uri: https://gogs.sysREPLACE_ME/pcf-admin/az-pcf-fog.git
+    username: concourse
+    password: DQmH6rpgEd2jCqBs
+    skip_ssl_verification: true
+    branch: devl
+
+- name: pipeline_image
+  type: registry-image
+  source:
+    # repository: ((docker_registry))/pcf-admins/clitools
+    # insecure_registries: [ ((docker_registry)) ]
+    repository: harbor.pks.REPLACE_ME_DNS/pcf-admins/clitools
+    tag: latest
+    username: admin
+    password: REPLACE_ME
+
+- name: check-schedule
+  type: time
+  source:
+    start: 8:00 PM
+    stop: 10:00 PM
+    location: America/New_York
+    interval: 24h
+
+- name: apply-schedule
+  type: time
+  source:
+    start: 10:30 PM
+    stop: 11:30 PM
+    location: America/New_York
+    interval: 24h
+
+- name: send-an-email
+  type: email
+  source:
+    smtp:
+      host: nc-hub.mailhost.customercenter.net
+      port: "25"
+      skip_ssl_validation: true
+      anonymous: true
+    from: azure-pcf@DOMAIN.COM
+    to: [ REPLACE_ME@DOMAIN.COM ]
+
+resource_types:
+- name: email
+  type: docker-image
+  source:
+    repository: harbor.pks.REPLACE_ME_DNS/pcf-admins/email-resource
+    tag: latest
+    username: admin
+    password: REPLACE_ME
+
+jobs:
+- name: update-harbor
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "harbor"
+
+- name: update-sso
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "sso"
+- name: update-rabbitmq
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "rabbitmq"
+
+# - name: update-splunk
+#   plan:
+#   - get: check-schedule
+#     trigger: true
+#   - get: pipeline_repo
+#   - get: pipeline_image
+#   - task: update
+#     image: pipeline_image
+#     file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+#     params:
+#       PRODUCT: "splunk"
+
+# Too much of a pain right now.  apm vs apmpostgres.  Whats up with that
+# - name: update-metrics
+#   plan:
+#   - get: check-schedule
+#     trigger: true
+#   - get: pipeline_repo
+#   - get: pipeline_image
+#   - task: update
+#     image: pipeline_image
+#     file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+#     params:
+#       PRODUCT: "metrics"
+- name: update-pas
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "pas"
+
+- name: update-pasw
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "pasw"
+- name: update-healthwatch
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "healthwatch"
+- name: update-azure_sb
+  plan:
+  - get: check-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: update
+    image: pipeline_image
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+    params:
+      PRODUCT: "azure_sb"
+# - name: get-info
+#   plan:
+#   - get: pipeline_repo
+#   - get: pipeline_image
+#   - task: update
+#     image: pipeline_image
+#     file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.yml
+#     params:
+#       PRODUCT: "info"
+
+- name: pending-changes
+  plan:
+  - get: apply-schedule
+    trigger: true
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: pending-changes
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/check-pending.yml
+    image: pipeline_image
+    params:
+      OPSMAN_DOMAIN_OR_IP_ADDRESS: "opsman.REPLACE_ME_DNS"
+      OPSMAN_CLIENT_ID: "om-admin"
+      OPSMAN_PASSWORD: 'REPLACE_ME'
+      ENV: "azfog"
+    on_success:
+      put: send-an-email
+      params:
+        headers: email/pendingheaders.txt
+        subject: email/pendingsubject.txt
+        body: email/pending.html
+  - put: next
+- name: apply-changes
+  plan:
+  - get: next
+    trigger: true
+    passed:
+    - pending-changes
+  - get: pipeline_repo
+  - get: pipeline_image
+  - task: apply-changes
+    file: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/apply-updates.yml
+    image: pipeline_image
+    params:
+      OPSMAN_DOMAIN_OR_IP_ADDRESS: "opsman.REPLACE_ME_DNS"
+      OPSMAN_CLIENT_ID: "om-admin"
+      OPSMAN_PASSWORD: 'REPLACE_ME'
+      ENV: azfog
+    on_success:
+      put: send-an-email
+      params:
+        headers: email/headers.txt
+        subject: email/subject.txt
+        body: email/body.html
+    on_failure:
+      put: send-an-email
+      params:
+        headers: email/headers.txt
+        subject: email/subject.txt
+        body: email/body.html

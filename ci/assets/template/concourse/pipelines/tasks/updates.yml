@@ -1,0 +1,13 @@
+---
+platform: linux
+inputs:
+- name: pipeline_repo
+params:
+  PRODUCT:
+
+image_resource:
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+run:
+  path: pipeline_repo/ci/assets/template/concourse/pipelines/tasks/updates.sh

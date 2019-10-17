@@ -1,0 +1,7 @@
+
+decryption-passphrase: {{.decryption_passphrase}}
+#Add for SAML
+# saml-bosh-idp-metadata: {{.saml_idp_metadata}}
+# saml-idp-metadata: {{.saml_idp_metadata}}
+# saml-rbac-admin-group: {{.saml_rbac_admin_pcf_resource_group_name}}
+# saml-rbac-groups-attribute: {{.saml_rbac_groups_attribute}}
