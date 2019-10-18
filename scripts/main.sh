@@ -125,8 +125,7 @@
         echo "~~~~~~~~~~~~~~~~~~~~~"
         echo "1. Sound Check"
         echo "2. Dance your little dance"
-        echo "3. Run FULL DEMO"
-        echo "4. Destroy the DEMO"
+        echo "3. Destroy the DEMO"
         echo "x. Exit"
     }
     read_options(){
@@ -135,8 +134,7 @@
         case $choice in
             1) set_the_stage ;;
             2) dance ;;
-            3) run_demo ;;
-            4) destroy_demo ;;
+            3) destroy_demo ;;
             x) exit 0;;
             *) echo -e "${RED}Error...${STD}" && sleep 2
         esac
@@ -163,31 +161,33 @@
         fresh_opsman
         download_pas
         download_pasw
-        download_rabbitmq
-        download_healthwatch
-        download_harbor
-        download_spring
-        download_metrics
-        download_splunk
-        download_sso
-        download_azure_sb
-        download_mysql
-        download_credhub_sb
-        download_redis
-        download_pks
+        download_product rabbitmq $rabbitmq_product_slug $rabbitmq_version_regex
+        download_product healthwatch $healthwatch_product_slug $healthwatch_version_regex
+        download_product harbor $harbor_product_slug $harbor_version_regex
+        download_product spring $spring_product_slug $spring_version_regex
+        download_product metrics $metrics_product_slug $metrics_version_regex
+        download_product splunk $splunk_product_slug $splunk_version_regex
+        download_product sso $sso_product_slug $sso_version_regex
+        download_product azure_sb $azure_sb_product_slug $azure_sb_version_regex
+        download_product mysql $mysql_product_slug $mysql_version_regex
+        download_product credhub_sb $credhub_sb_product_slug $credhub_sb_version_regex
+        download_product redis $redis_product_slug $redis_version_regex
+        download_product cloudcache $cloudcache_product_slug $cloudcache_version_regex
+        download_product pks $pks_product_slug $pks_version_regex
         pause
     }
     dance(){
         terraform_opsman
-        terraform_pas
-        terraform_pasw
-        terraform_healthwatch
-        terraform_harbor
-        terraform_azure_sb
-        terraform_splunk
-        terraform_redis
-        terraform_mysql
-        terraform_pks
+        terraform_product pas
+        terraform_product pasw
+        terraform_product healthwatch
+        terraform_product harbor
+        terraform_product azure_sb
+        terraform_product splunk
+        terraform_product redis
+        terraform_product mysql
+        terraform_product pks
+        terraform_product cloudcache
         
         fresh_opsman
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
@@ -197,23 +197,23 @@
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING PAS~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_pas
+        config_product pas
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING PASW~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_pasw
+        config_product pasw
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING RABBIT MQ~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_rabbitmq
+        config_product rabbitmq
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING HEALTHWATCH~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_healthwatch
+        config_product healthwatch
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING HARBOR~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_harbor
+        config_product harbor
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING METRICS~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
@@ -225,11 +225,11 @@
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING SPLUNK~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_splunk
+        config_product splunk
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING AZURE SERVICE BROKER~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_azure_sb
+        config_product azure_sb
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING CREDHUB SERVICE BROKER~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
@@ -237,119 +237,29 @@
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING MYSQL~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_mysql
+        config_product mysql
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING REDIS~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_redis
+        config_product redis
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING SPRING SERVICES~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         config_spring
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~STARTING PIVOTAL CLOUD CACHE~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        config_product cloudcache
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~STARTING PKS~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        config_pks
+        config_product pks
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~EVERYTHING HAS COMPLETED~~~~~~~~${NC}"
         echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         pause
 
     }
-    run_demo(){
-        clear
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~IT'S DEMO TIME~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-
-        terraform_opsman
-        fresh_opsman
-        install_director
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING PAS~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_pas
-        download_pas
-        config_pas
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING PASW~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_pasw
-        download_pasw
-        config_pasw
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING RABBIT MQ~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_rabbitmq
-        config_rabbitmq
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING HEALTHWATCH~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_healthwatch
-        download_healthwatch
-        config_healthwatch
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING HARBOR~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_harbor
-        download_harbor
-        config_harbor
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING METRICS~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_metrics
-        config_metrics
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING SPLUNK~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_splunk
-        config_splunk
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING SSO~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_sso
-        config_sso
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING AZURE SERVICE BROKER~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_azure_sb
-        download_azure_sb
-        config_azure_sb
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING CREDHUB SERVICE BROKER~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_credhub_sb
-        config_credhub_sb
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING MYSQL~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_mysql
-        terraform_mysql
-        config_mysql
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING REDIS~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_redis
-        terraform_redis
-        config_redis
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING SPRING SERVICES~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        download_spring
-        config_spring
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~STARTING PKS~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform_pks
-        download_pks
-        config_pks
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~EVERYTHING HAS COMPLETED~~~~~~~~${NC}"
-        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        pause
-        pause
-    }
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # END OF DEMO SECTION
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -357,14 +267,14 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # START OF TERRAFORM SECTION
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    terraform_concourse(){
-        cd ../terraforming-concourse
-        terraform init
-        terraform apply
-        pause
-        cd ../scripts
-    }
     terraform_opsman(){
+        echo "==================================================================================================================="
+        echo "= If this step fails, you may need to add the cert to your trusted store                                          ="
+        echo "= url=releases.hashicorp.com                                                                                      ="
+        echo "= openssl s_client -showcerts -connect $url:443</dev/null 2>/dev/null | openssl x509 -outform PEM > /tmp/$url.crt ="
+        echo "= sudo mv /tmp/$url.crt /usr/local/share/ca-certificates                                                          ="
+        echo "= sudo update-ca-certificates --fresh                                                                             ="
+        echo "==================================================================================================================="
         cd ../terraforming-opsman_only
         echo -e  "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
         echo -e  "${BoW}~~~~~Terraforming OpsMan~~~~~${NC}"
@@ -374,85 +284,11 @@
 
         cd ../scripts
     }
-    terraform_harbor(){
-        cd ../terraforming-harbor
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming Harbor~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+    terraform_product(){
+        cd ../terraforming-${1}
+        echo -e "${BoW}~~~~~Terraforming ${1}~~~~~${NC}"
         terraform init
         terraform apply -auto-approve
-        cd ../scripts
-    }
-    terraform_mysql(){
-        cd ../terraforming-splunk
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming MySQL~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply -auto-approve
-        cd ../scripts
-    }
-    terraform_redis(){
-        cd ../terraforming-redis
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming Redis~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply -auto-approve
-        cd ../scripts
-    }
-    terraform_splunk(){
-        cd ../terraforming-splunk
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming Splunk~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply -auto-approve
-        cd ../scripts
-    }
-    terraform_pks(){
-        cd ../terraforming-pks
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming PKS~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply  -auto-approve
-        cd ../scripts
-    }
-    terraform_pas(){
-        cd ../terraforming-pas_only
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming PAS~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply  -auto-approve
-        cd ../scripts
-    }
-    terraform_pasw(){
-        cd ../terraforming-pasw
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming PASW~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply  -auto-approve
-        cd ../scripts
-    }
-    terraform_healthwatch(){
-        cd ../terraforming-healthwatch
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming Healthwatch~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply  -auto-approve
-        cd ../scripts
-    }
-    terraform_azure_sb(){
-        cd ../terraforming-azure-sb
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        echo -e "${BoW}~~~~~Terraforming Azure Service Broker~~~~~${NC}"
-        echo -e "${BoW}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
-        terraform init
-        terraform apply  -auto-approve
         cd ../scripts
     }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -489,6 +325,23 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # All the downloads
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    download_product(){
+        # download_product product product_slug version_regex
+        product=$1
+        product_slug=$2
+        version_regex=$3
+        echo "Downloading ${product} from Pivnet"
+        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $product_slug --product-version-regex $version_regex --stemcell-iaas azure
+        echo "Uploading ${product} to OpsMan"
+        om -k upload-product -p "$product_slug"*.pivotal
+        echo "Uploading ${product} Stemcell to OpsMan"
+        om -k upload-stemcell -s *.tgz
+        echo "Staging ${product}"
+        om -k stage-product --product-name "$product_slug"  --product-version $(om tile-metadata --product-path "$product_slug"*.pivotal --product-version true)
+        echo "Deleting ${product} files"
+        rm "$product_slug"*.pivotal
+        rm *.tgz
+    }
     download_pas(){
         echo "Downloading PAS from Pivnet"
         om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "cf*.pivotal" --pivnet-product-slug $pas_product_slug --product-version-regex $pas_version_regex --stemcell-iaas azure
@@ -502,7 +355,6 @@
         rm "$pas_product_slug"-*.pivotal
         rm *.tgz
     }
-
     download_pasw(){
         mkdir downloads
         echo "Downloading PASW from Pivnet"
@@ -523,175 +375,6 @@
         echo "Deleting PASW files"
         rm -rf ./downloads
     }
-
-    download_rabbitmq(){
-        echo "Downloading rabbitmq from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $rabbitmq_product_slug --product-version-regex $rabbitmq_version_regex --stemcell-iaas azure
-        echo "Uploading rabbitmq to OpsMan"
-        om -k upload-product -p "$rabbitmq_product_slug"*.pivotal
-        echo "Uploading rabbitmq Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging rabbitmq"
-        om -k stage-product --product-name "$rabbitmq_product_slug"  --product-version $(om tile-metadata --product-path "$rabbitmq_product_slug"*.pivotal --product-version true)
-        echo "Deleting rabbitmq files"
-        rm "$rabbitmq_product_slug"*.pivotal
-        rm *.tgz
-    }
-    
-    download_healthwatch(){
-        echo "Downloading healthwatch from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $healthwatch_product_slug --product-version-regex $healthwatch_version_regex --stemcell-iaas azure
-        echo "Uploading healthwatch Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Uploading healthwatch Tile to OpsMan"
-        om -k upload-product -p *health*.pivotal
-        echo "Staging healthwatch Tile"
-        om -k stage-product --product-name $healthwatch_product_slug --product-version $(om tile-metadata --product-path *health*.pivotal --product-version true)
-        echo "Deleting downloaded healthwatch files"
-        rm *.pivotal
-        rm *.tgz
-    }
-
-    download_harbor(){
-        echo "Downloading Harbor from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $harbor_product_slug --product-version-regex $harbor_version_regex --stemcell-iaas azure
-        echo "Uploading Harbor to OpsMan"
-        om -k upload-product -p "$harbor_product_slug"-*.pivotal
-        echo "Uploading Harbor Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging Harbor"
-        om -k stage-product --product-name harbor-container-registry --product-version $(om tile-metadata --product-path "$harbor_product_slug"-*.pivotal --product-version true)
-        echo "Deleting Harbor files"
-        rm "$harbor_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_metrics(){
-
-        echo "Downloading Metrics from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $metrics_product_slug --product-version-regex $metrics_version_regex --stemcell-iaas azure
-        echo "Uploading Metrics to OpsMan"
-        om -k upload-product -p "$metrics_product_slug"*.pivotal
-        echo "Uploading Metrics Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging Metrics"
-        om -k stage-product --product-name apmPostgres --product-version $(om tile-metadata --product-path "$metrics_product_slug"*.pivotal --product-version true)
-        echo "Deleting Metrics files"
-        rm "$metrics_product_slug"*.pivotal
-        rm *.tgz
-    }
-
-    download_splunk(){
-        echo "Downloading splunk from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $splunk_product_slug --product-version-regex $splunk_version_regex --stemcell-iaas azure
-        echo "Uploading splunk to OpsMan"
-        om -k upload-product -p "$splunk_product_slug"*.pivotal
-        echo "Uploading splunk Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging splunk"
-        om -k stage-product --product-name "$splunk_product_slug"  --product-version $(om tile-metadata --product-path "$splunk_product_slug"*.pivotal --product-version true)
-        echo "Deleting splunk files"
-        rm "$splunk_product_slug"*.pivotal
-        rm *.tgz
-    }
-
-    download_sso(){
-        echo "Downloading SSO from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $sso_product_slug --product-version-regex $sso_version_regex --stemcell-iaas azure
-        echo "Uploading SSO to OpsMan"
-        om -k upload-product -p "$sso_product_slug"*.pivotal
-        echo "Uploading SSO Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging SSO"
-        om -k stage-product --product-name "$sso_product_slug"  --product-version $(om tile-metadata --product-path "$sso_product_slug"*.pivotal --product-version true)
-        echo "Deleting SSO files"
-        rm "$sso_product_slug"*.pivotal
-        rm *.tgz
-    }
-
-    download_azure_sb(){
-        echo "Downloading Azure SB from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $azure_sb_product_slug --product-version-regex $azure_sb_version_regex --stemcell-iaas azure
-        echo "Uploading Azure SB to OpsMan"
-        om -k upload-product -p "$azure_sb_product_slug"-*.pivotal
-        echo "Uploading Azure SB Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging Azure SB"
-        om -k stage-product --product-name azure-service-broker --product-version $(om tile-metadata --product-path "$azure_sb_product_slug"-*.pivotal --product-version true)
-        echo "Deleting Azure SB files"
-        rm "$azure_sb_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_credhub_sb(){
-        echo "Downloading CredHub SB from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $credhub_sb_product_slug --product-version-regex $credhub_sb_version_regex --stemcell-iaas azure
-        echo "Uploading CredHub SB to OpsMan"
-        om -k upload-product -p "$credhub_sb_product_slug"-*.pivotal
-        echo "Uploading CredHub SB Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging CredHub SB"
-        om -k stage-product --product-name "$credhub_sb_product_slug" --product-version $(om tile-metadata --product-path "$credhub_sb_product_slug"-*.pivotal --product-version true)
-        echo "Deleting CredHubfiles"
-        rm "$credhub_sb_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_mysql(){
-        echo "Downloading Azure SB from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $mysql_product_slug --product-version-regex $mysql_version_regex --stemcell-iaas azure
-        echo "Uploading MySQL to OpsMan"
-        om -k upload-product -p "$mysql_product_slug"-*.pivotal
-        echo "Uploading MySQL Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging MySQL"
-        om -k stage-product --product-name "$mysql_product_slug" --product-version $(om tile-metadata --product-path "$mysql_product_slug"-*.pivotal --product-version true)
-        echo "Deleting MySQL files"
-        rm "$mysql_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_spring(){
-        echo "Downloading Spring Cloud Services from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token "${pivnet_token}" --pivnet-file-glob "*.pivotal" --pivnet-product-slug $spring_product_slug --product-version-regex $spring_version_regex --stemcell-iaas azure
-        echo "Uploading Spring Cloud Services SB to OpsMan"
-        om -k upload-product -p *spring*.pivotal
-        echo "Uploading Spring Cloud Services Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging Spring Cloud Services"
-        om -k stage-product --product-name $(om tile-metadata --product-path *spring*.pivotal --product-name) --product-version $(om tile-metadata --product-path *spring*.pivotal --product-version true)
-        echo "Deleting Spring Cloud Services files"
-        rm "$spring_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_redis(){
-        echo "Downloading Redis from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $redis_product_slug --product-version-regex $redis_version_regex --stemcell-iaas azure
-        echo "Uploading Redis to OpsMan"
-        om -k upload-product -p "$redis_product_slug"-*.pivotal
-        echo "Uploading Redis Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Staging Redis"
-        om -k stage-product --product-name "$redis_product_slug" --product-version $(om tile-metadata --product-path "$redis_product_slug"-*.pivotal --product-version true)
-        echo "Deleting Redis files"
-        rm "$redis_product_slug"-*.pivotal
-        rm *.tgz
-    }
-
-    download_pks(){
-        echo "Downloading PKS from Pivnet"
-        om -k download-product --output-directory . --pivnet-api-token $pivnet_token --pivnet-file-glob "*.pivotal" --pivnet-product-slug $pks_product_slug --product-version-regex $pks_version_regex --stemcell-iaas azure
-        echo "Uploading PKS Stemcell to OpsMan"
-        om -k upload-stemcell -s *.tgz
-        echo "Uploading PKS Tile to OpsMan"
-        om -k upload-product -p pivotal-container-service-*.pivotal
-        echo "Staging PKS Tile"
-        om -k stage-product --product-name pivotal-container-service --product-version $(om tile-metadata --product-path "$pks_product_slug"-*.pivotal --product-version true)
-        echo "Deleting downloaded PKS files"
-        rm "$pks_product_slug"-*.pivotal
-        rm *.tgz
-    }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # End of Downloads
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -699,74 +382,50 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # All the Configs
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    config_pas(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../pas.tfstate -n demo-uscentral-pcf/pas.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/pas-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../pas.tfstate) -o yaml)
+    config_product(){
+        echo -e  "${WoB}~~~~~~~~Downloading ${1} state~~~~~~~~~${NC}"
+        az storage blob download -c terraform -f ../${1}.tfstate -n etg-uscentral-lower-pcf/${1}.tfstate
+        om -k configure-product -c <(texplate execute ../ci/assets/template/${1}-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../${1}.tfstate) -o yaml)
     }
+    fresh_opsman (){
+        
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~Configuring OpsMan~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        echo -e  "Downloading state"
+        az storage blob download -c terraform -f ../opsman.tfstate -n etg-uscentral-lower-pcf/opsman.tfstate
 
-    config_pasw(){
+        ##############################
+        # Configure OpsMan Auth
+        ##############################
+        #NON-SAML
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~Setting OpsMan Auth~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        om -k configure-authentication --decryption-passphrase "${OPSMAN_DECRYPTION_PASSPHRASE}" -u admin -p "${password}"
+        #Setting new SSL
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~Adding Certificate~~~~~~~~${NC}"
+        echo -e  "${WoB}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${NC}"
+        om -k update-ssl-certificate --private-key-pem "$(jq -e --raw-output '.modules[0].outputs.ssl_private_key.value' ../opsman.tfstate)" --certificate-pem "$(jq -e --raw-output '.modules[0].outputs.ssl_cert.value' ../opsman.tfstate)"
+    }
+    install_director (){ 
         echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../pasw.tfstate -n demo-uscentral-pcf/pasw.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/pasw-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../pasw.tfstate) -o yaml)
+        az storage blob download -c terraform -f ../opsman.tfstate -n etg-uscentral-lower-pcf/opsman.tfstate
+        om -k configure-director --config <(texplate execute ../ci/assets/template/director-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../opsman.tfstate) -o yaml) || true
     }
-
-    config_rabbitmq(){
-        om -k configure-product -c ../ci/assets/template/rabbitmq-config.yml
-    }
-    
-    config_healthwatch(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../healthwatch.tfstate -n demo-uscentral-pcf/healthwatch.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/healthwatch-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../healthwatch.tfstate) -o yaml)
-    }
-
+    #Need to add terraform process to these.  Only network name needs set.
     config_credhub_sb(){
         om -k configure-product -c ../ci/assets/template/credhub_sb-config.yml
     }
-
     config_spring(){
         om -k configure-product -c ../ci/assets/template/spring-config.yml
-    }
-    config_harbor(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../harbor.tfstate -n demo-uscentral-pcf/harbor.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/harbor-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../harbor.tfstate) -o yaml)
-    }
-
-    config_redis(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../redis.tfstate -n demo-uscentral-pcf/redis.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/redis-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../redis.tfstate) -o yaml)
-    }
-    config_mysql(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../mysql.tfstate -n demo-uscentral-pcf/mysql.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/mysql-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../mysql.tfstate) -o yaml)
-    }
-    config_splunk(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../splunk.tfstate -n demo-uscentral-pcf/splunk.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/splunk-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../splunk.tfstate) -o yaml)
     }
     config_metrics(){
         om -k configure-product -c ../ci/assets/template/metrics-config.yml
     }
-
     config_sso(){
         om -k configure-product -c ../ci/assets/template/sso-config.yml
-    }
-
-    config_azure_sb(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../azure_sb.tfstate -n demo-uscentral-pcf/azure_sb.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/az_sb-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../azure_sb.tfstate) -o yaml)
-    }
-
-    config_pks(){
-        echo -e  "${WoB}~~~~~~~~Downloading state~~~~~~~~${NC}"
-        az storage blob download -c terraform -f ../pks.tfstate -n demo-uscentral-pcf/pks.tfstate
-        om -k configure-product -c <(texplate execute ../ci/assets/template/pks-config.yml -f <(jq -e --raw-output '.modules[0].outputs | map_values(.value)' ../pks.tfstate) -o yaml) 
     }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # End Of Configs
